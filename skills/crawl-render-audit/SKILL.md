@@ -1,27 +1,33 @@
 ---
 name: crawl-render-audit
-description: Audits a website for discoverability problems via safe crawling, DOM rendering, and structured data extraction.
-license: UNLICENSED
+description: Audits a website for off-site AI discoverability by crawling, parsing raw HTML, and rendering the DOM to detect JavaScript dependencies, missing metadata, and crawl barriers.
 ---
 
-# Crawl and Render Audit
+# Crawl & Render Audit Skill
 
-## When to use
-Invoked by the `audit-orchestrator` to perform technical HTTP, DOM, and metadata analysis on a website to uncover discoverability barriers.
+Use this skill to deterministically audit a website's structural AI readiness (discoverability) without relying on arbitrary LLM judgements.
 
 ## Inputs
-Target website URL and crawl configuration parameters (e.g., max_pages, max_depth).
-
-## Procedure
-1. Enforce strict robots.txt, domain boundaries, and rate limits.
-2. Safely crawl URLs starting from the root and sitemap.
-3. Selectively render pages suspected of heavy JavaScript dependency.
-4. Extract structural components, metadata, JSON-LD, and Schema.org data.
-5. Identify crawl barriers, render-locked content, missing metadata, and broken links.
-6. Return a normalized set of evidence-backed technical findings.
-
-## Output
-A list of preliminary technical findings, each containing observable evidence (e.g., HTML snippets, status codes, DOM diffs).
+- `start_url` (string, required): The target domain/website to audit. Must include protocol (e.g., `https://example.com`).
 
 ## Allowed Tools
-- Default API tools for HTTP requests and DOM parsing/rendering.
+- `run_command`: To execute the deterministic python script.
+- `view_file`: To view the generated JSON report.
+
+## Procedure
+1. Execute the orchestration script against the target URL:
+   ```bash
+   python skills/crawl-render-audit/scripts/run_audit.py --start-url <start_url>
+   ```
+2. Wait for the script to finish. The script respects read-only limits, timeouts, and `robots.txt` automatically.
+3. Read the output file `audit_report.json` generated in the current directory.
+4. Integrate the JSON findings (issues, severities, evidence) into your final response.
+
+## Output Format
+The `audit_report.json` contains a structured list of issues containing:
+- `title`: Short name of the issue.
+- `severity`: CRITICAL, HIGH, MEDIUM, or LOW.
+- `confidence`: HIGH, MEDIUM, or LOW.
+- `evidence`: Concrete proof of the finding.
+- `why`: The impact on AI discoverability.
+- `action`: Recommended fix.
