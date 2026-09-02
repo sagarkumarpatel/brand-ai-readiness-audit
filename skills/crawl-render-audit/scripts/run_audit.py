@@ -3,6 +3,7 @@ import json
 import dataclasses
 import os
 import sys
+from urllib.parse import urlparse
 
 # Ensure src modules can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -20,7 +21,8 @@ def main():
     parser.add_argument("--max-pages", type=int, default=10, help="Max pages to crawl")
     args = parser.parse_args()
 
-    config = CrawlConfig(max_pages=args.max_pages, allowed_domains=[])
+    domain = urlparse(args.start_url).netloc
+    config = CrawlConfig(max_pages=args.max_pages, allowed_domains=[domain])
     crawler = SafeCrawler(config)
     
     print(f"Crawling {args.start_url}...")

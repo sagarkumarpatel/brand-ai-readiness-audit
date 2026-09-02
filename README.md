@@ -89,9 +89,9 @@ Every finding produced by this system is rooted in strict, observable DOM eviden
 
 ## Performance (Measured Benchmarks)
 Our lightweight, synchronous engine is incredibly fast. Benchmarks measured locally:
-- **5 pages**: < 1.5 seconds
-- **25 pages**: < 3.0 seconds
-- **100 pages**: < 6.5 seconds
+- **5 pages**: ~0.70 seconds
+- **25 pages**: ~3.12 seconds
+- **100 pages**: ~12.54 seconds
 
 ## Testing
 This marketplace was rigorously validated for scale and generalization:

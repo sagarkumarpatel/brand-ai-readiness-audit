@@ -4,6 +4,7 @@ import logging
 import sys
 import os
 import dataclasses
+from urllib.parse import urlparse
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -24,7 +25,8 @@ def main():
     
     logging.info(f"Crawling {args.url} (max {args.max_pages} pages)...")
     
-    config = CrawlConfig(max_pages=args.max_pages, allowed_domains=[])
+    domain = urlparse(args.url).netloc
+    config = CrawlConfig(max_pages=args.max_pages, allowed_domains=[domain])
     crawler = SafeCrawler(config)
     crawl_responses = crawler.crawl([args.url])
     

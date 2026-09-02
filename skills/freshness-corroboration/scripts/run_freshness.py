@@ -1,6 +1,7 @@
 import argparse
 import sys
 import json
+from urllib.parse import urlparse
 from dataclasses import asdict
 from src.crawler.crawler import SafeCrawler
 from src.crawler.models import CrawlConfig
@@ -15,7 +16,8 @@ def main():
     print(f"Starting Freshness & Corroboration audit for: {args.url}")
     
     # 1. Crawl
-    config = CrawlConfig(max_pages=10, allowed_domains=[])
+    domain = urlparse(args.url).netloc
+    config = CrawlConfig(max_pages=10, allowed_domains=[domain])
     crawler = SafeCrawler(config)
     crawl_responses = crawler.crawl([args.url])
     
