@@ -1,6 +1,6 @@
 ---
 name: crawl-render-audit
-description: Audits a website for off-site AI discoverability by crawling, parsing raw HTML, and rendering the DOM to detect JavaScript dependencies, missing metadata, and crawl barriers.
+description: Provides crawling, raw HTML analysis, and optional rendered-DOM comparison for JavaScript-dependent pages to detect missing metadata and crawl barriers.
 ---
 
 # Crawl & Render Audit Skill

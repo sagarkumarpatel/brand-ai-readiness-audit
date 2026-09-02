@@ -39,15 +39,34 @@ Final Audit Report
 3. **`freshness-corroboration`**: Deterministically analyzes temporal data (e.g., copyright years, `datePublished`) to ensure content is fresh and contact information is internally consistent across pages.
 4. **`engagement-audit`**: Checks the site's structural engagement signals (identifying "Thin Content", "Dead-End Pages", and unstructured "Walls of Text").
 
+## Default vs Optional Rendering Architecture
+The system is explicitly designed for speed, determinism, and minimal dependencies in its default state, while preserving advanced rendering capabilities when needed.
+
+### Default Audit
+- Uses static/read-only HTML analysis
+- Built entirely on the Python standard library (`urllib`, `html.parser`)
+- Extremely fast and deterministic
+- No browser dependency required
+- Bypasses JavaScript rendering completely
+
+### Optional Rendered Audit
+- Uses Playwright when available
+- Useful for JavaScript-heavy Single Page Applications (SPAs)
+- Compares raw static HTML with the final rendered DOM
+- Helps identify critical content or navigation locked behind JS rendering
+- Remains entirely read-only (no website modification)
+
 ## Setup & Invocation
 
 ### Prerequisites
 - Python 3.9+
+- Optional: Playwright (only if using the optional rendered-DOM comparison)
 
 ### Installation
+The default static audit is built entirely using Python's standard library (`urllib`, `html.parser`, `json`, etc.) and requires **no third-party packages**.
 ```bash
 # Clone the repository (or extract the zip)
-pip install -r requirements.txt
+# No pip install required for the default static audit
 ```
 
 ### Running the Audit
@@ -81,5 +100,5 @@ This marketplace was rigorously validated for scale and generalization:
 - **Adversarial Resiliency**: Protected against recursive loops, infinite redirects, network hangs, and malformed HTML.
 
 ## Limitations
-- **Anti-Bot Systems**: Target websites utilizing aggressive anti-bot protection (e.g., strict Cloudflare rules) may block the Playwright rendering engine.
+- **Anti-Bot Systems**: Target websites utilizing aggressive anti-bot protection (e.g., strict Cloudflare rules) may block the `urllib` crawler or the optional Playwright rendering engine.
 - **Deterministic Heuristics**: The engagement metrics utilize strict deterministic thresholds (e.g., thin content < 15 words) rather than slower, non-deterministic LLM-based semantic analysis.

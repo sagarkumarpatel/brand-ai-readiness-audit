@@ -3,7 +3,8 @@ import sys
 import json
 from dataclasses import asdict
 from src.crawler.crawler import SafeCrawler
-from src.parser.html_analyzer import HTMLAnalyzer
+from src.crawler.models import CrawlConfig
+from src.parser.html_analyzer import parse_html
 from src.freshness.engine import FreshnessCorroborationEngine
 
 def main():
@@ -14,15 +15,18 @@ def main():
     print(f"Starting Freshness & Corroboration audit for: {args.url}")
     
     # 1. Crawl
-    crawler = SafeCrawler(max_pages=10)
-    crawl_responses = crawler.crawl(args.url)
+    config = CrawlConfig(max_pages=10, allowed_domains=[])
+    crawler = SafeCrawler(config)
+    crawl_responses = crawler.crawl([args.url])
     
     # 2. Parse
     parsed_pages = {}
     for resp in crawl_responses:
         try:
-            parsed = HTMLAnalyzer.analyze(resp)
-            parsed_pages[parsed.url] = parsed
+            if resp.html:
+                parsed = parse_html(resp.html, resp.url)
+                if parsed:
+                    parsed_pages[parsed.url] = parsed
         except Exception as e:
             print(f"Error parsing {resp.url}: {e}")
             

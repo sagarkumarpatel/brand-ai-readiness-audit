@@ -24,7 +24,7 @@ def main():
     crawler = SafeCrawler(config)
     
     print(f"Crawling {args.start_url}...")
-    crawl_responses = crawler.crawl(args.start_url)
+    crawl_responses = crawler.crawl([args.start_url])
     
     parsed_pages = {}
     for resp in crawl_responses:

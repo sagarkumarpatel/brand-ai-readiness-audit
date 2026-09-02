@@ -26,7 +26,7 @@ def main():
     
     config = CrawlConfig(max_pages=args.max_pages, allowed_domains=[])
     crawler = SafeCrawler(config)
-    crawl_responses = crawler.crawl(args.url)
+    crawl_responses = crawler.crawl([args.url])
     
     logging.info(f"Parsing {len(crawl_responses)} pages...")
     parsed_pages = {}
