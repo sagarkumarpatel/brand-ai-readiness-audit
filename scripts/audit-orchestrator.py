@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import time
 from datetime import datetime, timezone
 import asyncio
 import sys
@@ -10,7 +11,7 @@ from urllib.parse import urlparse
 from src.crawler.crawler import SafeCrawler
 from src.crawler.models import CrawlConfig, CrawlResponse
 from src.parser.models import ParsedPage
-from src.parser.html_analyzer import HTMLAnalyzer
+from src.parser.html_analyzer import parse_html
 from src.analysis.discoverability import SiteDiscoverabilityEngine
 from src.freshness.engine import FreshnessCorroborationEngine
 from src.engagement.engine import EngagementAnalyzer
@@ -25,14 +26,14 @@ class CrawlRunResponse:
     def __init__(self, pages: List[CrawlResponse]):
         self.pages = pages
 
-async def run_audit(url: str):
-    logger.info(f"Starting audit for {url}")
+async def run_audit(url: str, max_pages: int = 100):
+    logger.info(f"Starting audit for {url} with max_pages={max_pages}")
     
     # 1. Crawl
     domain = urlparse(url).netloc
     config = CrawlConfig(
-        max_pages=10, 
-        max_depth=2, 
+        max_pages=max_pages, 
+        max_depth=3, 
         allowed_domains=[domain] if domain else []
     )
     crawler = SafeCrawler(config)
@@ -48,7 +49,7 @@ async def run_audit(url: str):
     for page in crawl_response.pages:
         if page.html and not page.error:
             try:
-                parsed = HTMLAnalyzer.parse(page.html, page.url)
+                parsed = parse_html(page.html, page.url)
                 parsed_pages[page.url] = parsed
             except Exception as e:
                 logger.warning(f"Failed to parse {page.url}: {e}")
@@ -115,11 +116,12 @@ async def run_audit(url: str):
         
         report_data = ReportGenerator.build_report(url, final_findings)
         
-        return {
+        ret = {
             "json": ReportSerializer.to_json(report_data),
             "markdown": ReportSerializer.to_markdown(report_data),
             "data": report_data
         }
+        return ret
     except Exception as e:
         logger.error(f"Reporting failed: {e}")
         return _generate_error_report(url, f"Reporting failed: {e}")

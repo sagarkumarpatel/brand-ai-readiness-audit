@@ -59,7 +59,8 @@ class SafeCrawler:
             with self.opener.open(req, timeout=self.config.timeout_seconds) as response:
                 status = response.getcode()
                 headers = dict(response.headers)
-                content_type = headers.get('Content-Type', '')
+                headers_lower = {k.lower(): v for k, v in headers.items()}
+                content_type = headers_lower.get('content-type', '')
                 
                 # Check size limit
                 content_length = headers.get('Content-Length')
