@@ -46,16 +46,16 @@ The Recommendation Engine maps the deterministic Finding Title to a specifically
 
 ### Technical
 **15. How does crawling work?**
-An asynchronous Python-based crawler utilizing `aiohttp` and `BeautifulSoup` navigates the site, restricted by maximum page limits, depth limits, and timeout thresholds.
+A synchronous Python-based crawler utilizing built-in `urllib` and `html.parser` navigates the site, restricted by maximum page limits, depth limits, and timeout thresholds.
 
 **16. How do you respect robots.txt?**
 The crawler explicitly fetches `/robots.txt` and uses Python's `urllib.robotparser` to strictly obey directives before ever requesting a target path.
 
 **17. How do you handle JavaScript-heavy websites?**
-We integrate `Playwright` to execute a headless Chromium browser instance. It renders the SPA fully and returns the updated DOM.
+While a renderer component exists in the architecture, the final audit pipeline currently utilizes static HTML analysis for maximum performance and stability. JavaScript rendering is intentionally bypassed in the primary flow.
 
 **18. How do you detect render-locked content?**
-We compare the raw HTML received from the fast `aiohttp` request against the final DOM rendered by `Playwright`. If critical content only exists in the latter, it is flagged as render-locked.
+The underlying architecture includes support for comparing raw HTML against rendered DOM, though this feature is not active in the default fast-audit orchestrator to ensure sub-second response times.
 
 **19. How do you detect stale information?**
 By extracting `datePublished` from JSON-LD or regex-matching copyright years against the current year.
@@ -92,7 +92,7 @@ No. It strictly issues `GET` and `HEAD` requests.
 It catches the HTTP timeout, 403, or connection drop, skips the page, logs a warning, and continues gracefully without crashing.
 
 **30. What happens if Chromium is unavailable?**
-The Playwright engine catches the error, degrades gracefully, skips JS rendering analysis, and falls back to raw HTML analysis entirely automatically.
+The static analyzer natively avoids Chromium dependencies, eliminating this failure mode entirely from the standard audit path.
 
 ### Performance
 **31. What is the runtime?**
@@ -118,4 +118,4 @@ By detecting broken journeys (Dead-Ends) and terrible content readability struct
 Our Generalization Test suite proved the heuristics successfully analyze 12 entirely different website structures, from single-page JS apps to legacy corporate portals.
 
 **38. What are the main limitations?**
-Aggressive enterprise anti-bot software (like strict Cloudflare or Datadome profiles) can block the Chromium renderer. Also, our engagement rules use strict structural logic rather than semantic nuance.
+Aggressive enterprise anti-bot software (like strict Cloudflare or Datadome profiles) can block the basic urllib crawler. Also, our engagement rules use strict structural logic rather than semantic nuance.
