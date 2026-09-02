@@ -7,29 +7,30 @@ license: UNLICENSED
 # Audit Orchestrator
 
 ## When to use
-Use this skill as the primary entrypoint when requested to perform a brand AI readiness audit on a given website. Do not invoke other skills manually; this skill will handle the composition.
+Use this skill as the primary and ONLY entrypoint when requested to perform a brand AI readiness audit on a given website. This skill handles the composition of the underlying analysis engines (Discoverability, Freshness, Engagement).
 
 ## Inputs
-A JSON configuration object containing at least the target website URL:
-```json
-{
-  "site": "https://example.com"
-}
-```
+Provide the target website URL.
 
 ## Procedure
-1. Receive and validate the audit request configuration.
-2. Delegate technical parsing and evaluation to `crawl-render-audit`.
-3. Delegate fact and temporal analysis to `freshness-corroboration`.
-4. Delegate usability and journey analysis to `engagement-audit`.
-5. Aggregate findings from all three supporting skills.
-6. Normalize and deduplicate findings.
-7. Calculate final severity and confidence based on collected evidence.
-8. Compose actionable recommendations for each finding.
-9. Generate and output the final audit report JSON.
+1. Execute `scripts/audit-orchestrator.py --url <URL>`.
+2. The orchestrator will:
+   - Perform a single crawl of the target URL.
+   - Run the Discoverability analysis (`crawl-render-audit` scope).
+   - Run the Freshness analysis (`freshness-corroboration` scope).
+   - Run the Engagement analysis (`engagement-audit` scope).
+   - Pass all findings through the Finding Composer for deduplication and normalization.
+   - Attach actionable recommendations via the Recommendation Engine.
+   - Generate a JSON report matching the minimum Adobe schema.
+3. Read the output from `audit_report.json`.
 
 ## Output
-A fixed-schema JSON audit report containing a summary and an array of findings with evidence and suggested actions.
+A deterministic, fixed-schema JSON audit report containing:
+- `site`: The audited URL.
+- `audited_at`: ISO 8601 timestamp.
+- `summary`: Object with counts (total, critical, high, medium, low).
+- `findings`: Array of findings with `id`, `title`, `severity`, `evidence`, and `suggested_action` (`summary`, `priority`).
 
 ## Allowed Tools
-- Default API tools for reading and writing files.
+- `run_command` (to execute the python orchestration script)
+- `view_file` (to view the generated report)
