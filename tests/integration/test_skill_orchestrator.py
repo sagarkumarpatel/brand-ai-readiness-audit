@@ -28,7 +28,9 @@ class TestSkillOrchestrator(unittest.IsolatedAsyncioTestCase):
         mock_fresh.return_value = []
         mock_eng.return_value = []
         
-        report = await run_audit("http://example.com")
+        result = await run_audit("http://example.com")
+        import json
+        report = json.loads(result["json"])
         
         self.assertEqual(report["site"], "http://example.com")
         self.assertEqual(report["summary"]["total_findings"], 0)
@@ -56,7 +58,9 @@ class TestSkillOrchestrator(unittest.IsolatedAsyncioTestCase):
             Issue("Dead-End Page", "LOW", "HIGH", ["ev3"], "why", "act")
         ]
         
-        report = await run_audit("http://example.com")
+        result = await run_audit("http://example.com")
+        import json
+        report = json.loads(result["json"])
         
         self.assertEqual(report["summary"]["total_findings"], 3)
         self.assertEqual(report["summary"]["high"], 1)
@@ -84,7 +88,9 @@ class TestSkillOrchestrator(unittest.IsolatedAsyncioTestCase):
         ]
         mock_eng.return_value = []
         
-        report = await run_audit("http://example.com")
+        result = await run_audit("http://example.com")
+        import json
+        report = json.loads(result["json"])
         
         self.assertEqual(report["summary"]["total_findings"], 1)
         self.assertEqual(report["summary"]["critical"], 1)
@@ -101,7 +107,9 @@ class TestSkillOrchestrator(unittest.IsolatedAsyncioTestCase):
     async def test_crawl_failure_safe_handling(self, mock_crawl):
         mock_crawl.side_effect = Exception("Network timeout")
         
-        report = await run_audit("http://example.com")
+        result = await run_audit("http://example.com")
+        import json
+        report = json.loads(result["json"])
         
         # Should fail safely with error message, not crash
         self.assertEqual(report["summary"]["total_findings"], 0)

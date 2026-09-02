@@ -87,76 +87,80 @@ async def run_audit(url: str):
     # 5. Generate Recommendations and Build Report Output
     final_findings = []
     
-    severity_counts = {
-        "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0
-    }
-    
     for finding in normalized_findings:
         try:
             rec = RecommendationEngine.generate(finding)
             if not rec:
                 continue # Safety: if recommendation engine rejects it, drop it.
                 
-            severity_key = finding.severity.lower()
-            if severity_key in severity_counts:
-                severity_counts[severity_key] += 1
-                
             final_findings.append({
                 "id": finding.id,
                 "title": finding.title,
                 "severity": finding.severity,
                 "evidence": finding.evidence,
-                "suggested_action": rec.suggested_action
+                "suggested_action": {
+                    "summary": rec.suggested_action.get("summary", ""),
+                    "priority": rec.suggested_action.get("priority", "LOW")
+                },
+                "confidence": finding.confidence,
+                "why": finding.why_it_matters
             })
         except Exception as e:
             logger.error(f"Failed to generate recommendation for finding {finding.id}: {e}")
 
-    # 6. Final Report
-    report = {
-        "site": url,
-        "audited_at": datetime.now(timezone.utc).isoformat(),
-        "summary": {
-            "total_findings": len(final_findings),
-            "critical": severity_counts["critical"],
-            "high": severity_counts["high"],
-            "medium": severity_counts["medium"],
-            "low": severity_counts["low"]
-        },
-        "findings": final_findings
-    }
-    
-    return report
+    # 6. Final Report via Reporting Layer
+    try:
+        from src.reporting.generator import ReportGenerator
+        from src.reporting.serializer import ReportSerializer
+        
+        report_data = ReportGenerator.build_report(url, final_findings)
+        
+        return {
+            "json": ReportSerializer.to_json(report_data),
+            "markdown": ReportSerializer.to_markdown(report_data),
+            "data": report_data
+        }
+    except Exception as e:
+        logger.error(f"Reporting failed: {e}")
+        return _generate_error_report(url, f"Reporting failed: {e}")
 
 def _generate_error_report(url: str, error_msg: str):
     return {
-        "site": url,
-        "audited_at": datetime.now(timezone.utc).isoformat(),
-        "summary": {
-            "total_findings": 0,
-            "critical": 0,
-            "high": 0,
-            "medium": 0,
-            "low": 0
-        },
-        "findings": [],
-        "error": error_msg
+        "json": json.dumps({
+            "site": url,
+            "audited_at": datetime.now(timezone.utc).isoformat(),
+            "summary": {
+                "total_findings": 0,
+                "critical": 0,
+                "high": 0,
+                "medium": 0,
+                "low": 0
+            },
+            "findings": [],
+            "error": error_msg
+        }, indent=2),
+        "markdown": f"# AI Website Readiness Audit\n\n## Site\n{url}\n\n## Error\n{error_msg}",
+        "data": None
     }
 
 def main():
     parser = argparse.ArgumentParser(description="Audit Orchestrator")
     parser.add_argument("--url", required=True, help="The URL to audit")
-    parser.add_argument("--output", default="audit_report.json", help="Output JSON file")
+    parser.add_argument("--output", default="audit_report", help="Output base filename (without extension)")
     args = parser.parse_args()
 
     report = asyncio.run(run_audit(args.url))
 
-    with open(args.output, "w") as f:
-        json.dump(report, f, indent=2)
+    with open(f"{args.output}.json", "w", encoding="utf-8") as f:
+        f.write(report["json"])
         
-    print(f"Audit complete. Found {report['summary']['total_findings']} issues. Wrote to {args.output}")
+    with open(f"{args.output}.md", "w", encoding="utf-8") as f:
+        f.write(report["markdown"])
+        
+    if report["data"]:
+        print(f"Audit complete. Found {report['data'].summary.total_findings} issues. Wrote to {args.output}.json and {args.output}.md")
+    else:
+        print(f"Audit failed. Wrote error report to {args.output}.json")
 
 if __name__ == "__main__":
     main()
