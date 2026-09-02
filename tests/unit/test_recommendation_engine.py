@@ -17,7 +17,7 @@ class TestRecommendationEngine(unittest.TestCase):
         )
 
     def test_missing_canonical(self):
-        finding = self.create_finding(title="Missing Canonical")
+        finding = self.create_finding(title="Missing Canonical URL")
         rec = RecommendationEngine.generate(finding)
         self.assertIsNotNone(rec)
         self.assertEqual(rec.finding_id, "123")
@@ -34,7 +34,7 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertIn("server-side rendering (SSR)", rec.suggested_action["summary"])
 
     def test_sitemap_crawl_barrier(self):
-        finding = self.create_finding(title="Sitemap/Crawl Barrier")
+        finding = self.create_finding(title="Sitemap Page Blocked by Robots.txt")
         rec = RecommendationEngine.generate(finding)
         self.assertIn("robots.txt", rec.suggested_action["summary"])
 
@@ -54,12 +54,12 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertIn("sufficient, well-structured original content", rec.suggested_action["summary"])
 
     def test_dead_end_page(self):
-        finding = self.create_finding(title="Dead-End Page")
+        finding = self.create_finding(title="Dead End Page")
         rec = RecommendationEngine.generate(finding)
         self.assertIn("internal next-step link", rec.suggested_action["summary"])
 
     def test_wall_of_text(self):
-        finding = self.create_finding(title="Wall of Text")
+        finding = self.create_finding(title="Unstructured Wall of Text")
         rec = RecommendationEngine.generate(finding)
         self.assertIn("semantic HTML headings", rec.suggested_action["summary"])
 
