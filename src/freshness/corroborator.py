@@ -13,7 +13,7 @@ class FactCorroborator:
         resolutions = []
         
         for ftype, type_facts in grouped.items():
-            if ftype in (FactType.PHONE, FactType.EMAIL, FactType.BRAND_NAME):
+            if ftype in (FactType.PHONE, FactType.EMAIL, FactType.BRAND_NAME, FactType.COPYRIGHT_YEAR):
                 resolutions.append(FactCorroborator._resolve_singular_fact(ftype, type_facts))
             elif ftype == FactType.PRODUCT:
                 # Products aren't singular per site, they just accumulate.

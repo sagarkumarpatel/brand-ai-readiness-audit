@@ -49,7 +49,19 @@ class FactExtractor:
                 source=FactSource(url=page.url, location="og:site_name", context=og_site_name.strip())
             ))
 
-        # 3. JSON-LD structured data extraction
+        # 3. Extract Copyright year from visible text
+        # simple heuristic looking for © or Copyright followed by a year
+        if page.visible_text:
+            match = re.search(r'(?:©|Copyright)\s*(?:[A-Za-z\s]*?)\s*([12][0-9]{3})', page.visible_text, re.IGNORECASE)
+            if match:
+                year = match.group(1)
+                facts.append(Fact(
+                    type=FactType.COPYRIGHT_YEAR,
+                    value=year,
+                    source=FactSource(url=page.url, location="visible_text", context=match.group(0))
+                ))
+                
+        # 4. JSON-LD structured data extraction
         for block in page.json_ld_blocks:
             try:
                 data = json.loads(block) if isinstance(block, str) else block
@@ -105,6 +117,14 @@ class FactExtractor:
                         value=name.strip(),
                         source=FactSource(url=url, location="json-ld", context=f"Product.name")
                     ))
+            
+        date_mod = data.get("dateModified") or data.get("datePublished")
+        if isinstance(date_mod, str):
+            facts.append(Fact(
+                type=FactType.DATE,
+                value=date_mod.strip(),
+                source=FactSource(url=url, location="json-ld", context=f"dateModified/datePublished")
+            ))
             
         # recursive check for nested elements (like ContactPoint)
         for k, v in data.items():

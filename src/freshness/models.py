@@ -7,6 +7,7 @@ class FactType(Enum):
     PHONE = "phone"
     EMAIL = "email"
     DATE = "date"
+    COPYRIGHT_YEAR = "copyright_year"
     PRODUCT = "product"
     ADDRESS = "address"
 

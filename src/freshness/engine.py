@@ -21,6 +21,27 @@ class FreshnessCorroborationEngine:
         
         # 3. Generate findings based on resolution states
         for res in resolutions:
+            if res.fact_type.name == "COPYRIGHT_YEAR":
+                current_year = 2026
+                max_year_found = 0
+                for val in res.all_values:
+                    try:
+                        year_int = int(val)
+                        max_year_found = max(max_year_found, year_int)
+                    except ValueError:
+                        pass
+                
+                if max_year_found > 0 and max_year_found < current_year:
+                    issues.append(Issue(
+                        title="Stale Content",
+                        severity="MEDIUM",
+                        confidence="HIGH",
+                        evidence=[f"The most recent copyright year found is {max_year_found}, which is older than the current year ({current_year})."],
+                        why="Outdated copyright years or missing current temporal markers strongly signal to AI bots that the site may be abandoned or outdated.",
+                        action="Update the copyright year in the footer and ensure content timestamps are current."
+                    ))
+                continue
+                
             if res.state == ResolutionState.UNRESOLVED:
                 # Direct contradiction found
                 primary = res.primary_value
