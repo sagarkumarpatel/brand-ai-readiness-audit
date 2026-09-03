@@ -72,11 +72,28 @@ The default static audit is built entirely using Python's standard library (`url
 ### Running the Audit
 You can invoke the marketplace orchestrator skill using the provided wrapper script:
 ```bash
-python scripts/audit-orchestrator.py --url https://example.com --max-pages 5
+python run_audit.py --url https://example.com
+```
+
+For a custom output filename:
+```bash
+python run_audit.py --url https://example.com --output my-audit
+```
+
+**Note:**
+- `--url` is required.
+- `--output` is optional.
+- `--output` is a BASE filename, not a filename with `.json`.
+- The program creates both JSON and Markdown reports.
+
+For example, using `--output my-audit` will create:
+```text
+my-audit.json
+my-audit.md
 ```
 
 ### Output
-The system generates a deterministic, schema-validated JSON report (`audit_report.json`) detailing the findings, their exact evidence, their calculated severities (CRITICAL/HIGH/MEDIUM/LOW), and precise, actionable recommendations.
+The system generates a deterministic, schema-validated JSON report and Markdown report detailing the findings, their exact evidence, their calculated severities (CRITICAL/HIGH/MEDIUM/LOW), and precise, actionable recommendations.
 
 ## Evidence-Backed Analysis
 Every finding produced by this system is rooted in strict, observable DOM evidence. The audit does not hallucinate problems; if it flags a missing canonical tag, it explicitly documents the missing tag in the `evidence` field. 

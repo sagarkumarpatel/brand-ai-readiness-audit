@@ -5,8 +5,12 @@ import time
 from datetime import datetime, timezone
 import asyncio
 import sys
+import os
 from typing import List
 from urllib.parse import urlparse
+
+# Ensure the root project directory is in the import path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.crawler.crawler import SafeCrawler
 from src.crawler.models import CrawlConfig, CrawlResponse
